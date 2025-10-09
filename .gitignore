@@ -6,11 +6,26 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+package-lock.json
 
 node_modules
 dist
 dist-ssr
 *.local
+
+.env
+
+yarn.lock
+# Environment variables
+
+.env.local
+.env.production
+
+# Secrets and credentials
+service-account.json
+*.p8
+*.csv
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

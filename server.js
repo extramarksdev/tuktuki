@@ -1,15 +1,29 @@
 import express from "express";
 import cors from "cors";
 import { Buffer } from "buffer";
+import dotenv from "dotenv";
+
+// Load environment variables
+dotenv.config();
 
 const app = express();
-const PORT = 8888;
+const PORT = process.env.PORT || 8888;
 
 app.use(cors());
 app.use(express.json());
 
-const RAZORPAY_KEY_ID = "rzp_live_RNPKIJDopsIqWX";
-const RAZORPAY_KEY_SECRET = "CKh9JCnz0NGRcFla4QB3VFgS";
+const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID;
+const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET;
+
+if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
+  console.error(
+    "Error: Razorpay credentials not found in environment variables"
+  );
+  console.error(
+    "Please create a .env file with RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET"
+  );
+  process.exit(1);
+}
 
 const createBasicAuth = () => {
   const credentials = Buffer.from(
@@ -65,13 +79,16 @@ app.get("/api/razorpay/subscriptions", async (req, res) => {
 app.get("/api/razorpay/plans/:planId", async (req, res) => {
   try {
     const { planId } = req.params;
-    const response = await fetch(`https://api.razorpay.com/v1/plans/${planId}`, {
-      method: "GET",
-      headers: {
-        Authorization: createBasicAuth(),
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await fetch(
+      `https://api.razorpay.com/v1/plans/${planId}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: createBasicAuth(),
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
     if (!response.ok) {
       throw new Error(`Razorpay API error: ${response.status}`);
