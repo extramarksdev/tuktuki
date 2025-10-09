@@ -1,0 +1,47 @@
+.coming-soon-tab {
+  .coming-soon-content {
+    background: white;
+    border-radius: 12px;
+    padding: 80px 40px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    .icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    h3 {
+      font-size: 24px;
+      color: #2c3e50;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    p {
+      font-size: 16px;
+      color: #7f8c8d;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .coming-soon-tab {
+    .coming-soon-content {
+      padding: 60px 20px;
+
+      .icon {
+        font-size: 48px;
+      }
+
+      h3 {
+        font-size: 20px;
+      }
+
+      p {
+        font-size: 14px;
+      }
+    }
+  }
+}
+

@@ -1,0 +1,133 @@
+.metrics-table-container {
+  width: 100%;
+  overflow-x: auto;
+  padding: 20px;
+}
+
+.metrics-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+
+  thead {
+    background: #2c3e50;
+    color: white;
+
+    th {
+      padding: 16px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid #ecf0f1;
+      transition: background-color 0.2s;
+
+      &:hover {
+        background-color: #f8f9fa;
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &.row-disabled {
+        opacity: 0.6;
+        background-color: #f8f9fa;
+      }
+    }
+
+    td {
+      padding: 16px;
+      font-size: 14px;
+
+      &.metric-label {
+        font-weight: 500;
+        color: #2c3e50;
+      }
+
+      &.metric-value {
+        font-weight: 600;
+        color: #27ae60;
+        font-size: 16px;
+      }
+
+      &.metric-source {
+        color: #7f8c8d;
+        font-size: 12px;
+      }
+
+      &.metric-status {
+        .status-success {
+          display: inline-block;
+          padding: 4px 12px;
+          background: #d4edda;
+          color: #155724;
+          border-radius: 12px;
+          font-size: 12px;
+          font-weight: 600;
+        }
+
+        .status-error {
+          display: inline-block;
+          padding: 4px 12px;
+          background: #f8d7da;
+          color: #721c24;
+          border-radius: 12px;
+          font-size: 12px;
+          font-weight: 600;
+        }
+
+        .status-disabled {
+          display: inline-block;
+          padding: 4px 12px;
+          background: #fff3cd;
+          color: #856404;
+          border-radius: 12px;
+          font-size: 12px;
+          font-weight: 600;
+        }
+      }
+    }
+  }
+}
+
+.metrics-table-loading,
+.metrics-table-error {
+  padding: 40px;
+  text-align: center;
+  font-size: 16px;
+  color: #7f8c8d;
+}
+
+.metrics-table-error {
+  color: #e74c3c;
+}
+
+@media (max-width: 768px) {
+  .metrics-table {
+    font-size: 12px;
+
+    thead th {
+      padding: 12px 8px;
+      font-size: 12px;
+    }
+
+    tbody td {
+      padding: 12px 8px;
+      font-size: 12px;
+
+      &.metric-value {
+        font-size: 14px;
+      }
+    }
+  }
+}

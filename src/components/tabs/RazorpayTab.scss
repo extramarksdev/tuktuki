@@ -1,0 +1,182 @@
+.razorpay-tab {
+  .tab-section {
+    margin-bottom: 30px;
+
+    h3 {
+      color: white;
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  .revenue-by-date-container,
+  .subscriptions-table-container {
+    overflow-x: auto;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .revenue-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    thead {
+      background: #27ae60;
+      color: white;
+
+      th {
+        padding: 14px 16px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom: 1px solid #ecf0f1;
+        transition: background-color 0.2s;
+
+        &:hover {
+          background-color: #f8f9fa;
+        }
+
+        &:last-child {
+          border-bottom: none;
+        }
+      }
+
+      td {
+        padding: 14px 16px;
+        font-size: 14px;
+        color: #2c3e50;
+
+        &.date-cell {
+          font-weight: 600;
+          color: #2c3e50;
+        }
+
+        &.count-cell {
+          text-align: center;
+          color: #7f8c8d;
+        }
+
+        &.revenue-cell {
+          font-weight: 700;
+          color: #27ae60;
+          font-size: 16px;
+        }
+      }
+    }
+  }
+
+  .subscriptions-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    thead {
+      background: #2c3e50;
+      color: white;
+
+      th {
+        padding: 14px 16px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom: 1px solid #ecf0f1;
+        transition: background-color 0.2s;
+
+        &:hover {
+          background-color: #f8f9fa;
+        }
+
+        &:last-child {
+          border-bottom: none;
+        }
+      }
+
+      td {
+        padding: 14px 16px;
+        font-size: 13px;
+        color: #2c3e50;
+
+        &.sub-id,
+        &.plan-id {
+          font-family: monospace;
+          font-size: 12px;
+          color: #7f8c8d;
+        }
+
+        &.paid-count {
+          font-weight: 600;
+          color: #27ae60;
+        }
+
+        .status-badge {
+          display: inline-block;
+          padding: 4px 10px;
+          border-radius: 12px;
+          font-size: 11px;
+          font-weight: 600;
+          text-transform: uppercase;
+
+          &.created {
+            background: #fff3cd;
+            color: #856404;
+          }
+
+          &.active {
+            background: #d4edda;
+            color: #155724;
+          }
+
+          &.completed {
+            background: #d1ecf1;
+            color: #0c5460;
+          }
+
+          &.cancelled {
+            background: #f8d7da;
+            color: #721c24;
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .razorpay-tab {
+    .subscriptions-table {
+      font-size: 11px;
+
+      thead th {
+        padding: 10px 8px;
+        font-size: 11px;
+      }
+
+      tbody td {
+        padding: 10px 8px;
+        font-size: 11px;
+
+        &.sub-id,
+        &.plan-id {
+          font-size: 10px;
+        }
+      }
+    }
+  }
+}
