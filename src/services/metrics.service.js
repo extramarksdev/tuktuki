@@ -1,4 +1,9 @@
-import { fetchSubscriptionRevenue, fetchPaymentData } from "./razorpay.service.js";
+import {
+  fetchSubscriptionRevenue,
+  fetchPaymentData,
+} from "./razorpay.service.js";
+import { fetchAppStoreDownloads } from "./appstore.service.js";
+import { fetchPlayStoreDownloads } from "./playstore.service.js";
 import { METRIC_TYPES } from "../constants/metrics.js";
 
 const MOCK_DATA = {
@@ -8,21 +13,25 @@ const MOCK_DATA = {
   admobRevenue: 1200,
 };
 
-export const fetchAllMetrics = async () => {
+export const fetchAllMetrics = async (date = null) => {
   try {
-    const [razorpayData, paymentData] = await Promise.all([
-      fetchSubscriptionRevenue(),
-      fetchPaymentData(),
-    ]);
+    const [razorpayData, paymentData, appstoreData, playstoreData] =
+      await Promise.all([
+        fetchSubscriptionRevenue(),
+        fetchPaymentData(),
+        fetchAppStoreDownloads(date),
+        fetchPlayStoreDownloads(),
+      ]);
 
     const totalRevenue = paymentData.stats.revenue || razorpayData.totalRevenue;
 
     return {
       metrics: {
         [METRIC_TYPES.DOWNLOADS]: {
-          value: MOCK_DATA.downloads,
-          error: false,
-          disabled: true,
+          value: appstoreData.downloads,
+          error: appstoreData.error,
+          disabled: false,
+          message: appstoreData.message,
         },
         [METRIC_TYPES.EPISODE_VIEWS]: {
           value: MOCK_DATA.episodeViews,
@@ -45,6 +54,11 @@ export const fetchAllMetrics = async () => {
           disabled: false,
         },
       },
+      appstoreDate: appstoreData.date,
+      playstoreDownloads: playstoreData.downloads,
+      playstoreError: playstoreData.error,
+      playstoreMessage: playstoreData.message,
+      playstorePeriod: playstoreData.period,
       razorpayStats: razorpayData.stats,
       razorpaySubscriptions: razorpayData.subscriptions,
       paymentStats: paymentData.stats,
@@ -56,9 +70,9 @@ export const fetchAllMetrics = async () => {
     return {
       metrics: {
         [METRIC_TYPES.DOWNLOADS]: {
-          value: MOCK_DATA.downloads,
-          error: false,
-          disabled: true,
+          value: 0,
+          error: true,
+          disabled: false,
         },
         [METRIC_TYPES.EPISODE_VIEWS]: {
           value: MOCK_DATA.episodeViews,
