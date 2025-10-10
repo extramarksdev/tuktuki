@@ -256,12 +256,12 @@ async function generateReport() {
   <div class="container">
     <div class="header">
       <h1>TukTuki Reports Dashboard</h1>
-      <p style="font-size: 15px; color: #555; font-weight: 600; margin-top: 8px;">
-        Showing data for ${new Date(reportDate).toLocaleDateString("en-US", {
+      <p style="font-size: 16px; font-weight: 700; margin-top: 8px; color: #555;">
+        Showing data for <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">${new Date(reportDate).toLocaleDateString("en-US", {
           day: "numeric",
           month: "short",
           year: "numeric",
-        })}
+        })}</span>
       </p>
     </div>
 
