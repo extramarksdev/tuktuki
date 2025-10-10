@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Tabs } from "./Tabs.jsx";
 import { RazorpayTab } from "../tabs/RazorpayTab.jsx";
+import { AdMobTab } from "../tabs/AdMobTab.jsx";
 import { OverviewTab } from "../tabs/OverviewTab.jsx";
 import { ComingSoonTab } from "../tabs/ComingSoonTab.jsx";
 import { DownloadsTab } from "../tabs/DownloadsTab.jsx";
@@ -66,7 +67,13 @@ export const Dashboard = () => {
           />
         );
       case TABS.ADMOB:
-        return <ComingSoonTab title="Google AdMob Metrics" />;
+        return (
+          <AdMobTab
+            stats={data?.admobStats}
+            error={data?.admobError}
+            message={data?.admobMessage}
+          />
+        );
       case TABS.DOWNLOADS:
         return (
           <DownloadsTab
@@ -78,7 +85,7 @@ export const Dashboard = () => {
             playstoreDownloads={data?.playstoreDownloads}
             playstoreError={data?.playstoreError}
             playstoreMessage={data?.playstoreMessage}
-            playstorePeriod={data?.playstorePeriod}
+            playstoreLastUpdated={data?.playstoreLastUpdated}
           />
         );
       case TABS.EPISODES:

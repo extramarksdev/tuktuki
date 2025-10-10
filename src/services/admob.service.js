@@ -1,21 +1,45 @@
-import { API_KEYS, API_ENDPOINTS } from '../constants/api.js';
-import { httpGet, createBearerAuthHeader } from '../utils/http.js';
+import { httpGet } from "../utils/http.js";
 
-export const fetchAdMobMetrics = async () => {
+const PROXY_BASE_URL = "http://localhost:8888/api";
+
+export const fetchAdMobReport = async () => {
   try {
-    const authHeader = createBearerAuthHeader(API_KEYS.ADMOB_CLIENT_ID);
+    const url = `${PROXY_BASE_URL}/admob/report`;
+    const response = await httpGet(url);
 
-    const url = `${API_ENDPOINTS.ADMOB_BASE}/accounts/YOUR_ACCOUNT_ID/networkReport:generate`;
-    
-    const data = await httpGet(url, authHeader);
+    console.log("📊 AdMob API Response:", response);
 
     return {
-      impressions: data.impressions || 0,
-      revenue: data.earnings?.microsAmount ? data.earnings.microsAmount / 1000000 : 0,
+      error: false,
+      stats: {
+        impressions: response.impressions || 0,
+        clicks: response.clicks || 0,
+        revenue: response.revenue || 0,
+        period: response.period || "last 30 days",
+        dailyData: response.dailyData || [],
+      },
     };
   } catch (error) {
-    console.error('Error fetching AdMob metrics:', error);
-    throw error;
+    console.error("Error fetching AdMob report:", error);
+
+    let errorMessage = "Unable to fetch AdMob data. Please check your configuration.";
+
+    if (error.message.includes("404")) {
+      errorMessage =
+        "AdMob account not accessible. Check ADMOB_PUBLISHER_ID in .env.";
+    } else if (error.message.includes("400")) {
+      errorMessage = "Missing OAuth credentials. Check .env file for GOOGLE_REFRESH_TOKEN.";
+    } else if (error.message.includes("401") || error.message.includes("403")) {
+      errorMessage =
+        "OAuth permission denied. Get a new GOOGLE_REFRESH_TOKEN from OAuth Playground.";
+    } else if (error.message.includes("500")) {
+      errorMessage = "AdMob API error. Check server logs for details.";
+    }
+
+    return {
+      error: true,
+      message: errorMessage,
+      stats: null,
+    };
   }
 };
-

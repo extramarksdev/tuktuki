@@ -295,19 +295,19 @@ app.get("/api/appstore/downloads", async (req, res) => {
     let newDownloads = 0;
     let updates = 0;
     let reDownloads = 0;
-    
+
     for (let i = 1; i < lines.length; i++) {
       const fields = lines[i].split("\t");
       const appleId = fields[idxAppleId];
       const ptype = fields[idxType];
       const units = parseInt(fields[idxUnits] || "0", 10);
-      
+
       const rowData = {};
       headers.forEach((header, idx) => {
         rowData[header] = fields[idx];
       });
       allRows.push(rowData);
-      
+
       if (appleId === appProductId && !Number.isNaN(units)) {
         if (ptype === "1" || ptype === "1F") {
           newDownloads += units;
@@ -347,6 +347,199 @@ app.get("/api/appstore/downloads", async (req, res) => {
   }
 });
 
+app.post("/api/oauth/exchange-code", async (req, res) => {
+  try {
+    const { code } = req.body;
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+    if (!code || !clientId || !clientSecret) {
+      return res.status(400).json({
+        error: true,
+        message: "Missing code, client_id, or client_secret",
+      });
+    }
+
+    const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        code: code,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: "https://developers.google.com/oauthplayground",
+        grant_type: "authorization_code",
+      }).toString(),
+    });
+
+    if (!tokenResponse.ok) {
+      const errorData = await tokenResponse.text();
+      throw new Error(`Token exchange failed: ${errorData}`);
+    }
+
+    const tokenData = await tokenResponse.json();
+
+    return res.json({
+      access_token: tokenData.access_token,
+      refresh_token: tokenData.refresh_token,
+      expires_in: tokenData.expires_in,
+      scope: tokenData.scope,
+    });
+  } catch (error) {
+    console.error("Error exchanging OAuth code:", error.message);
+    res.status(500).json({
+      error: true,
+      message: "Failed to exchange authorization code",
+      errorDetails: error.message,
+    });
+  }
+});
+
+app.get("/api/admob/report", async (req, res) => {
+  try {
+    const publisherId = process.env.ADMOB_PUBLISHER_ID;
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
+
+    console.log("📊 AdMob API Request Started");
+    console.log("   Publisher ID:", publisherId || "❌ MISSING");
+    console.log("   Client ID:", clientId ? "✅ SET" : "❌ MISSING");
+    console.log("   Client Secret:", clientSecret ? "✅ SET" : "❌ MISSING");
+    console.log("   Refresh Token:", refreshToken || "❌ MISSING");
+    console.log("   ttttttttt Full Refresh Token:", refreshToken);
+
+    if (!publisherId || !clientId || !clientSecret || !refreshToken) {
+      return res.status(400).json({
+        error: true,
+        message:
+          "AdMob OAuth credentials missing. Need: ADMOB_PUBLISHER_ID, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN",
+      });
+    }
+
+    console.log("🔐 Creating OAuth2 client...");
+    const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
+    oauth2Client.setCredentials({ refresh_token: refreshToken });
+
+    oauth2Client.on('tokens', (tokens) => {
+      console.log("🔄 ttttttttt New access token obtained from refresh token!");
+      console.log("   Access Token:", tokens.access_token ? `✅ ${tokens.access_token.substring(0, 30)}...` : "❌");
+      console.log("   Expires in:", tokens.expiry_date ? new Date(tokens.expiry_date).toISOString() : "unknown");
+      if (tokens.refresh_token) {
+        console.log("   New Refresh Token received:", tokens.refresh_token.substring(0, 30) + "...");
+      }
+    });
+
+    console.log("✅ OAuth2 client configured with refresh token");
+    console.log("📡 Initializing AdMob API client...");
+    const admob = google.admob({ version: "v1", auth: oauth2Client });
+
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+
+    console.log(`📅 Fetching AdMob data from ${thirtyDaysAgo.toISOString().split('T')[0]} to ${today.toISOString().split('T')[0]}`);
+    console.log(`🎯 Target account: accounts/${publisherId}`);
+
+    const response = await admob.accounts.networkReport.generate({
+      parent: `accounts/${publisherId}`,
+      requestBody: {
+        reportSpec: {
+          dateRange: {
+            startDate: {
+              year: thirtyDaysAgo.getFullYear(),
+              month: thirtyDaysAgo.getMonth() + 1,
+              day: thirtyDaysAgo.getDate(),
+            },
+            endDate: {
+              year: today.getFullYear(),
+              month: today.getMonth() + 1,
+              day: today.getDate(),
+            },
+          },
+          metrics: ["IMPRESSIONS", "CLICKS", "ESTIMATED_EARNINGS"],
+          dimensions: ["DATE", "PLATFORM"],
+        },
+      },
+    });
+
+    console.log("✅ AdMob API call successful!");
+    console.log("📦 Full Response Object:", JSON.stringify(response.data, null, 2));
+
+    const responseArray = response.data || [];
+    const dataRows = responseArray.filter(item => item.row).map(item => item.row);
+    
+    let totalImpressions = 0;
+    let totalClicks = 0;
+    let totalEarnings = 0;
+    const dailyData = [];
+
+    dataRows.forEach((row) => {
+      const date = row.dimensionValues?.DATE?.value || "";
+      const platform = row.dimensionValues?.PLATFORM?.value || "Unknown";
+      const metrics = row.metricValues || {};
+      
+      const impressions = parseInt(metrics.IMPRESSIONS?.integerValue || 0, 10);
+      const clicks = parseInt(metrics.CLICKS?.integerValue || 0, 10);
+      const earnings = parseFloat(
+        metrics.ESTIMATED_EARNINGS?.microsValue
+          ? metrics.ESTIMATED_EARNINGS.microsValue / 1000000
+          : 0
+      );
+
+      totalImpressions += impressions;
+      totalClicks += clicks;
+      totalEarnings += earnings;
+
+      dailyData.push({
+        date: date.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3"),
+        platform,
+        impressions,
+        clicks,
+        revenue: earnings,
+      });
+    });
+
+    console.log("📊 Parsed totals:");
+    console.log("   Impressions:", totalImpressions);
+    console.log("   Clicks:", totalClicks);
+    console.log("   Revenue:", totalEarnings);
+
+    return res.json({
+      publisherId,
+      impressions: totalImpressions,
+      clicks: totalClicks,
+      revenue: totalEarnings,
+      period: "last 30 days",
+      dailyData,
+      rawResponse: response.data,
+    });
+  } catch (error) {
+    console.error("❌ AdMob API Error:", error.message);
+    console.error("📄 Full error:", error);
+
+    let userMessage = "Failed to fetch AdMob data";
+    if (error.message.includes("401") || error.message.includes("invalid_grant")) {
+      userMessage = "OAuth token expired or invalid. Please refresh GOOGLE_REFRESH_TOKEN.";
+      console.error("🔑 Token issue detected - refresh token may be invalid or expired");
+    } else if (error.message.includes("403")) {
+      userMessage = "Permission denied. Google account doesn't have access to this AdMob account.";
+      console.error("🚫 Permission denied - check account access");
+    } else if (error.message.includes("404")) {
+      userMessage = "AdMob account not found. Check ADMOB_PUBLISHER_ID.";
+      console.error("🔍 Account not found - publisher ID may be wrong");
+    }
+
+    res.status(500).json({
+      error: true,
+      message: userMessage,
+      errorDetails: error.message,
+    });
+  }
+});
+
 app.get("/api/playstore/downloads", async (req, res) => {
   try {
     const bucketName = process.env.PLAYSTORE_BUCKET_NAME;
@@ -356,7 +549,8 @@ app.get("/api/playstore/downloads", async (req, res) => {
     if (!bucketName || !packageName || !serviceAccountPath) {
       return res.status(400).json({
         error: true,
-        message: "Google Play credentials missing in .env. Need: PLAYSTORE_BUCKET_NAME, PLAYSTORE_PACKAGE_NAME, PLAYSTORE_SERVICE_ACCOUNT_PATH",
+        message:
+          "Google Play credentials missing. Need: PLAYSTORE_BUCKET_NAME, PLAYSTORE_PACKAGE_NAME, PLAYSTORE_SERVICE_ACCOUNT_PATH",
       });
     }
 
@@ -371,58 +565,93 @@ app.get("/api/playstore/downloads", async (req, res) => {
 
     const storage = google.storage({ version: "v1", auth });
 
-    const response = await storage.objects.list({
+    const listResponse = await storage.objects.list({
       bucket: bucketName,
       prefix: "stats/installs/",
       maxResults: 10,
     });
 
-    const files = response.data?.items || [];
-    
+    const files = listResponse.data?.items || [];
+
     if (files.length === 0) {
       return res.json({
         packageName,
         downloads: 0,
-        message: "No reports available yet. Reports generate daily after setup.",
+        message:
+          "No reports available yet. Reports generate daily after Cloud Storage export is enabled in Play Console.",
       });
     }
 
-    const latestFile = files.sort((a, b) => 
-      new Date(b.updated) - new Date(a.updated)
+    const latestFile = files.sort(
+      (a, b) => new Date(b.updated) - new Date(a.updated)
     )[0];
 
-    const fileData = await storage.objects.get({
-      bucket: bucketName,
-      object: latestFile.name,
-      alt: "media",
-    }, { responseType: "stream" });
+    const fileResponse = await storage.objects.get(
+      {
+        bucket: bucketName,
+        object: latestFile.name,
+        alt: "media",
+      },
+      { responseType: "stream" }
+    );
 
     let csvContent = "";
-    for await (const chunk of fileData.data) {
+    for await (const chunk of fileResponse.data) {
       csvContent += chunk.toString();
     }
 
-    const lines = csvContent.split("\n").filter(l => l.trim());
+    const lines = csvContent.split("\n").filter((l) => l.trim());
+    if (lines.length === 0) {
+      return res.json({
+        packageName,
+        downloads: 0,
+        message: "Report file is empty",
+      });
+    }
+
     const headers = lines[0].split(",");
-    const installsIdx = headers.findIndex(h => h.toLowerCase().includes("install"));
+    const installsIdx = headers.findIndex((h) =>
+      h.toLowerCase().includes("install")
+    );
+
+    if (installsIdx === -1) {
+      return res.json({
+        packageName,
+        downloads: 0,
+        message: "No installs column found in report",
+      });
+    }
 
     let totalDownloads = 0;
     for (let i = 1; i < lines.length; i++) {
       const fields = lines[i].split(",");
-      const installs = parseInt(fields[installsIdx] || 0, 10);
-      if (!isNaN(installs)) totalDownloads += installs;
+      const installs = parseInt(fields[installsIdx] || "0", 10);
+      if (!Number.isNaN(installs)) {
+        totalDownloads += installs;
+      }
     }
 
     return res.json({
       packageName,
       downloads: totalDownloads,
       lastUpdated: latestFile.updated,
+      fileName: latestFile.name,
     });
   } catch (error) {
     console.error("Error fetching Play Store downloads:", error.message);
+
+    let userMessage = "Failed to fetch Play Store downloads";
+    if (error.message.includes("404")) {
+      userMessage =
+        "Cloud Storage bucket not found. Check PLAYSTORE_BUCKET_NAME in .env";
+    } else if (error.message.includes("403")) {
+      userMessage =
+        "Permission denied. Service account needs 'Storage Object Viewer' role";
+    }
+
     res.status(500).json({
       error: true,
-      message: "Failed to fetch Play Store downloads",
+      message: userMessage,
       errorDetails: error.message,
     });
   }

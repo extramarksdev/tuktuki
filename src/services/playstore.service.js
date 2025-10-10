@@ -7,24 +7,33 @@ export const fetchPlayStoreDownloads = async () => {
     const url = `${PROXY_BASE_URL}/playstore/downloads`;
     const data = await httpGet(url);
 
-    console.log("📥 Play Store API Response:", data);
+    console.log("🤖 Play Store API Response:", data);
+
+    const noDataAvailable = data.message && data.downloads === 0;
 
     return {
       error: false,
       downloads: data.downloads || 0,
-      period: data.period || "last 7 days",
+      lastUpdated: data.lastUpdated,
+      message: noDataAvailable ? data.message : null,
     };
   } catch (error) {
     console.error("Error fetching Play Store downloads:", error);
     const errorMsg = error.message || "Failed to fetch Play Store downloads";
-    const is500Error = errorMsg.includes("500");
+
+    let userMessage = "Failed to fetch Play Store downloads";
+    if (errorMsg.includes("500")) {
+      userMessage = "Server error. Please try again later.";
+    } else if (errorMsg.includes("404")) {
+      userMessage = "Cloud Storage not configured";
+    } else if (errorMsg.includes("403")) {
+      userMessage = "Permission denied. Check service account permissions.";
+    }
 
     return {
       error: true,
       downloads: 0,
-      message: is500Error
-        ? "Server error. Please try again later."
-        : "Failed to fetch Play Store downloads",
+      message: userMessage,
     };
   }
 };

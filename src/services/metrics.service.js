@@ -4,6 +4,7 @@ import {
 } from "./razorpay.service.js";
 import { fetchAppStoreDownloads } from "./appstore.service.js";
 import { fetchPlayStoreDownloads } from "./playstore.service.js";
+import { fetchAdMobReport } from "./admob.service.js";
 import { METRIC_TYPES } from "../constants/metrics.js";
 
 const MOCK_DATA = {
@@ -15,12 +16,13 @@ const MOCK_DATA = {
 
 export const fetchAllMetrics = async (date = null) => {
   try {
-    const [razorpayData, paymentData, appstoreData, playstoreData] =
+    const [razorpayData, paymentData, appstoreData, playstoreData, admobData] =
       await Promise.all([
         fetchSubscriptionRevenue(),
         fetchPaymentData(),
         fetchAppStoreDownloads(date),
         fetchPlayStoreDownloads(),
+        fetchAdMobReport(),
       ]);
 
     const totalRevenue = paymentData.stats.revenue || razorpayData.totalRevenue;
@@ -39,14 +41,14 @@ export const fetchAllMetrics = async (date = null) => {
           disabled: true,
         },
         [METRIC_TYPES.ADMOB_IMPRESSIONS]: {
-          value: MOCK_DATA.admobImpressions,
-          error: false,
-          disabled: true,
+          value: admobData.stats?.impressions || 0,
+          error: admobData.error,
+          disabled: false,
         },
         [METRIC_TYPES.ADMOB_REVENUE]: {
-          value: MOCK_DATA.admobRevenue,
-          error: false,
-          disabled: true,
+          value: admobData.stats?.revenue || 0,
+          error: admobData.error,
+          disabled: false,
         },
         [METRIC_TYPES.SUBSCRIPTION_REVENUE]: {
           value: totalRevenue,
@@ -58,7 +60,10 @@ export const fetchAllMetrics = async (date = null) => {
       playstoreDownloads: playstoreData.downloads,
       playstoreError: playstoreData.error,
       playstoreMessage: playstoreData.message,
-      playstorePeriod: playstoreData.period,
+      playstoreLastUpdated: playstoreData.lastUpdated,
+      admobStats: admobData.stats,
+      admobError: admobData.error,
+      admobMessage: admobData.message,
       razorpayStats: razorpayData.stats,
       razorpaySubscriptions: razorpayData.subscriptions,
       paymentStats: paymentData.stats,

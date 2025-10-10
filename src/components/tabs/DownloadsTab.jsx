@@ -10,7 +10,7 @@ export const DownloadsTab = ({
   playstoreDownloads,
   playstoreError,
   playstoreMessage,
-  playstorePeriod,
+  playstoreLastUpdated,
 }) => {
   const [selectedDate, setSelectedDate] = useState(() => {
     const d = new Date();
@@ -33,24 +33,26 @@ export const DownloadsTab = ({
       clearTimeout(debounceTimer.current);
     }
 
-    debounceTimer.current = setTimeout(() => {
-      if (onDateChange && newDate) {
-        onDateChange(newDate);
-      }
-    }, 500);
+    if (newDate && newDate.length === 10) {
+      debounceTimer.current = setTimeout(() => {
+        if (onDateChange) {
+          onDateChange(newDate);
+        }
+      }, 1500);
+    }
   };
 
   const handleDateBlur = () => {
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
     }
-    if (onDateChange && selectedDate) {
+    if (onDateChange && selectedDate && selectedDate.length === 10) {
       onDateChange(selectedDate);
     }
   };
 
   const handleDateKeyDown = (e) => {
-    if (e.key === "Enter" && onDateChange && selectedDate) {
+    if (e.key === "Enter" && onDateChange && selectedDate && selectedDate.length === 10) {
       if (debounceTimer.current) {
         clearTimeout(debounceTimer.current);
       }
@@ -117,8 +119,16 @@ export const DownloadsTab = ({
           <p style={{ fontSize: "28px", margin: "8px 0" }}>
             {playstoreDownloads || 0}
           </p>
-          {playstorePeriod && (
-            <p style={{ opacity: 0.8, fontSize: "14px" }}>{playstorePeriod}</p>
+          {playstoreLastUpdated && (
+            <p style={{ opacity: 0.8, fontSize: "14px" }}>
+              Last updated:{" "}
+              {new Date(playstoreLastUpdated).toLocaleDateString()}
+            </p>
+          )}
+          {playstoreMessage && !playstoreError && (
+            <p style={{ fontSize: "13px", opacity: 0.6, marginTop: "12px" }}>
+              {playstoreMessage}
+            </p>
           )}
           {playstoreError && (
             <p
