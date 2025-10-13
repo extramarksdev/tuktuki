@@ -93,9 +93,9 @@ async function generateReport() {
 
 <table width="750" border="0" cellpadding="0" cellspacing="0" align="center" style="background-color: white; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
   <tr>
-    <td style="padding: 35px 45px; text-align: center; background: linear-gradient(135deg, #5469d4 0%, #6366f1 100%); border-bottom: 4px solid #4f46e5;">
-      <h1 style="margin: 0; font-size: 28px; color: white; font-weight: 700; letter-spacing: -0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">TukTuki Reports Dashboard</h1>
-      <p style="margin: 10px 0 0 0; font-size: 16px; color: white; font-weight: 600;">Showing data for <strong style="color: white; background-color: rgba(255,255,255,0.2); padding: 6px 16px; border-radius: 6px; font-size: 17px; display: inline-block; margin-top: 4px;">${dateStr}</strong></p>
+    <td style="padding: 35px 45px; text-align: center; background-color: white; border-bottom: 3px solid #e1e4e8;">
+      <h1 style="margin: 0; font-size: 28px; color: #1a1a1a; font-weight: 700; letter-spacing: -0.5px;">TukTuki Reports Dashboard</h1>
+      <p style="margin: 10px 0 0 0; font-size: 16px; color: #586069; font-weight: 600;">Showing data for <strong style="color: #5469d4; font-size: 17px;">${dateStr}</strong></p>
     </td>
   </tr>
   <tr>
