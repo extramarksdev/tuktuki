@@ -466,7 +466,7 @@ app.get("/api/admob/report", async (req, res) => {
     });
 
     console.log("✅ AdMob API call successful!");
-    console.log("📦 Full Response Object:", JSON.stringify(response.data, null, 2));
+    console.log("📦 AdMob Raw Response (sample):", JSON.stringify(response.data.slice(0, 5), null, 2));
 
     const responseArray = response.data || [];
     const dataRows = responseArray.filter(item => item.row).map(item => item.row);
@@ -506,6 +506,7 @@ app.get("/api/admob/report", async (req, res) => {
     console.log("   Impressions:", totalImpressions);
     console.log("   Clicks:", totalClicks);
     console.log("   Revenue:", totalEarnings);
+    console.log("   Total daily rows:", dailyData.length);
 
     return res.json({
       publisherId,
@@ -652,6 +653,135 @@ app.get("/api/playstore/downloads", async (req, res) => {
     res.status(500).json({
       error: true,
       message: userMessage,
+      errorDetails: error.message,
+    });
+  }
+});
+
+app.get("/api/adjust/report", async (req, res) => {
+  try {
+    const apiToken = process.env.ADJUST_API_TOKEN;
+    const appTokenAndroid = process.env.ADJUST_APP_TOKEN_ANDROID;
+    const appTokenIOS = process.env.ADJUST_APP_TOKEN_IOS;
+    const videoViewToken = process.env.ADJUST_EVENT_TOKEN_VIDEO_VIEW;
+    const firstInstallToken = process.env.ADJUST_EVENT_TOKEN_FIRST_INSTALL;
+    
+    const reportDate = req.query.date || (() => {
+      const d = new Date();
+      d.setDate(d.getDate() - 1);
+      return d.toISOString().split("T")[0];
+    })();
+
+    console.log("🤖 Adjust API Request Started");
+    console.log("   API Token:", apiToken ? `✅ SET` : "❌ MISSING");
+    console.log("   App Token (Android):", appTokenAndroid || "❌ MISSING");
+    console.log("   App Token (iOS):", appTokenIOS || "❌ MISSING");
+    console.log("   Event Token (Video View):", videoViewToken || "❌ MISSING");
+    console.log("   Event Token (First Install):", firstInstallToken || "❌ MISSING");
+    console.log("   Report Date:", reportDate);
+
+    if (!apiToken || !appTokenAndroid || !appTokenIOS) {
+      return res.status(400).json({
+        error: true,
+        message: "Adjust credentials missing. Need: ADJUST_API_TOKEN, ADJUST_APP_TOKEN_ANDROID, ADJUST_APP_TOKEN_IOS",
+      });
+    }
+
+    const appTokens = `${appTokenAndroid},${appTokenIOS}`;
+    const eventTokens = [videoViewToken, firstInstallToken].filter(Boolean).join(',');
+    
+    let url = `https://dash.adjust.com/control-center/reports-service/report?app_token__in=${appTokens}&date_period=${reportDate}:${reportDate}&dimensions=os_name&metrics=installs,sessions,daus,revenue`;
+    
+    if (eventTokens) {
+      url += `&event_token__in=${eventTokens}`;
+    }
+    
+    console.log("📡 Calling Adjust API:");
+    console.log("   URL:", url);
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${apiToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    console.log("📥 Adjust API Response:");
+    console.log("   Status:", response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("❌ Adjust API Error Response:", errorText);
+      throw new Error(`Adjust API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("✅ Adjust API Success!");
+    console.log("📦 Full Response:", JSON.stringify(data, null, 2));
+
+    const rows = data?.rows || [];
+    const androidRow = rows.find(r => r.os_name === "android");
+    const iosRow = rows.find(r => r.os_name === "ios");
+
+    let eventsData = {};
+    if (eventTokens) {
+      try {
+        console.log("📡 Fetching Adjust custom events...");
+        const eventsList = eventTokens.split(',');
+        
+        for (const eventToken of eventsList) {
+          const eventsUrl = `https://dash.adjust.com/control-center/reports-service/report?app_token__in=${appTokens}&date_period=${reportDate}:${reportDate}&dimensions=os_name&event_token__in=${eventToken}&metrics=events`;
+          
+          const eventsResponse = await fetch(eventsUrl, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${apiToken}`,
+              "Content-Type": "application/json",
+            },
+          });
+
+          console.log(`📥 Event ${eventToken} Response Status:`, eventsResponse.status);
+          
+          if (eventsResponse.ok) {
+            const eventData = await eventsResponse.json();
+            console.log(`✅ Event ${eventToken} Success!`);
+            console.log("📦 Event Response:", JSON.stringify(eventData, null, 2));
+            eventsData[eventToken] = eventData;
+          } else {
+            const errorText = await eventsResponse.text();
+            console.error(`❌ Event ${eventToken} failed:`, errorText);
+          }
+        }
+      } catch (eventsError) {
+        console.error("⚠️ Events fetch failed:", eventsError.message);
+      }
+    }
+
+    return res.json({
+      date: reportDate,
+      android: {
+        installs: parseInt(androidRow?.installs || 0, 10),
+        sessions: parseInt(androidRow?.sessions || 0, 10),
+        daus: parseFloat(androidRow?.daus || 0),
+        revenue: parseFloat(androidRow?.revenue || 0),
+      },
+      ios: {
+        installs: parseInt(iosRow?.installs || 0, 10),
+        sessions: parseInt(iosRow?.sessions || 0, 10),
+        daus: parseFloat(iosRow?.daus || 0),
+        revenue: parseFloat(iosRow?.revenue || 0),
+      },
+      totals: data?.totals || {},
+      events: eventsData,
+      rawResponse: data,
+    });
+  } catch (error) {
+    console.error("❌ Adjust Error:", error.message);
+    console.error("📄 Full error:", error);
+    res.status(500).json({
+      error: true,
+      message: "Failed to fetch Adjust data",
       errorDetails: error.message,
     });
   }

@@ -3,7 +3,7 @@ import {
   fetchPaymentData,
 } from "./razorpay.service.js";
 import { fetchAppStoreDownloads } from "./appstore.service.js";
-import { fetchPlayStoreDownloads } from "./playstore.service.js";
+import { fetchAdjustDownloads } from "./adjust.service.js";
 import { fetchAdMobReport } from "./admob.service.js";
 import { METRIC_TYPES } from "../constants/metrics.js";
 
@@ -16,12 +16,11 @@ const MOCK_DATA = {
 
 export const fetchAllMetrics = async (date = null) => {
   try {
-    const [razorpayData, paymentData, appstoreData, playstoreData, admobData] =
+    const [razorpayData, paymentData, adjustData, admobData] =
       await Promise.all([
         fetchSubscriptionRevenue(),
         fetchPaymentData(),
-        fetchAppStoreDownloads(date),
-        fetchPlayStoreDownloads(),
+        fetchAdjustDownloads(date),
         fetchAdMobReport(),
       ]);
 
@@ -30,10 +29,10 @@ export const fetchAllMetrics = async (date = null) => {
     return {
       metrics: {
         [METRIC_TYPES.DOWNLOADS]: {
-          value: appstoreData.downloads,
-          error: appstoreData.error,
+          value: adjustData.totalDownloads,
+          error: adjustData.error,
           disabled: false,
-          message: appstoreData.message,
+          message: adjustData.message,
         },
         [METRIC_TYPES.EPISODE_VIEWS]: {
           value: MOCK_DATA.episodeViews,
@@ -56,11 +55,12 @@ export const fetchAllMetrics = async (date = null) => {
           disabled: false,
         },
       },
-      appstoreDate: appstoreData.date,
-      playstoreDownloads: playstoreData.downloads,
-      playstoreError: playstoreData.error,
-      playstoreMessage: playstoreData.message,
-      playstoreLastUpdated: playstoreData.lastUpdated,
+      appstoreDate: adjustData.date,
+      playstoreDownloads: adjustData.androidDownloads,
+      playstoreError: adjustData.error,
+      playstoreMessage: adjustData.message,
+      playstoreLastUpdated: adjustData.date,
+      adjustData: adjustData.rawData,
       admobStats: admobData.stats,
       admobError: admobData.error,
       admobMessage: admobData.message,

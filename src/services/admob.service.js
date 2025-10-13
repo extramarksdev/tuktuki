@@ -8,6 +8,8 @@ export const fetchAdMobReport = async () => {
     const response = await httpGet(url);
 
     console.log("📊 AdMob API Response:", response);
+    console.log("   Daily data rows:", response.dailyData?.length);
+    console.log("   Sample dates:", response.dailyData?.slice(0, 3).map(d => d.date));
 
     return {
       error: false,
