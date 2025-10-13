@@ -89,35 +89,36 @@ async function generateReport() {
 <head>
 <meta charset="UTF-8">
 </head>
-<body style="margin: 0; padding: 20px; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+<body style="margin: 0; padding: 40px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;">
 
-<table width="600" border="0" cellpadding="0" cellspacing="0" align="center" style="background-color: white; border-radius: 8px;">
+<table width="750" border="0" cellpadding="0" cellspacing="0" align="center" style="background-color: white; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
   <tr>
-    <td style="padding: 30px; text-align: center; border-bottom: 2px solid #eee;">
-      <h1 style="margin: 0; font-size: 24px; color: #333;">TukTuki Reports Dashboard</h1>
-      <p style="margin: 10px 0 0 0; font-size: 14px; color: #666;">Showing data for <strong style="color: #5469d4;">${dateStr}</strong></p>
+    <td style="padding: 35px 45px; text-align: center; background: linear-gradient(135deg, #5469d4 0%, #6366f1 100%); border-bottom: 4px solid #4f46e5;">
+      <h1 style="margin: 0; font-size: 28px; color: white; font-weight: 700; letter-spacing: -0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">TukTuki Reports Dashboard</h1>
+      <p style="margin: 10px 0 0 0; font-size: 16px; color: white; font-weight: 600;">Showing data for <strong style="color: white; background-color: rgba(255,255,255,0.2); padding: 6px 16px; border-radius: 6px; font-size: 17px; display: inline-block; margin-top: 4px;">${dateStr}</strong></p>
     </td>
   </tr>
   <tr>
-    <td style="padding: 20px;">
+    <td style="padding: 40px;">
       
       <table width="100%" border="0" cellpadding="0" cellspacing="0">
         <tr>
-          <td width="50%" valign="top" style="padding: 10px;">
-            <table width="100%" border="0" cellpadding="15" cellspacing="0" style="background-color: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb;">
+          <td width="50%" valign="top" style="padding: 8px;">
+            <table width="100%" border="0" cellpadding="22" cellspacing="0" style="background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%); border: 1px solid #e8ecef; border-radius: 8px;">
               <tr>
                 <td>
-                  <p style="margin: 0 0 8px 0; font-size: 12px; color: #6b7280; font-weight: bold;">Total Downloads</p>
-                  <p style="margin: 0 0 10px 0; font-size: 28px; color: #111; font-weight: bold;">${totalDownloads.toLocaleString()}</p>
-                  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border-top: 1px solid #ddd; padding-top: 8px;">
+                  <p style="margin: 0 0 14px 0; font-size: 15px; color: #586069; font-weight: 600; letter-spacing: 0.3px;">📥 Total Downloads</p>
+                  <p style="margin: 0 0 18px 0; font-size: 38px; color: #24292e; font-weight: 700; line-height: 1;">${totalDownloads.toLocaleString()}</p>
+                  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border-top: 2px solid #d1d5da; padding-top: 14px;">
                     <tr>
-                      <td width="50%" style="padding-right: 5px; border-right: 1px solid #ddd;">
-                        <p style="margin: 0 0 3px 0; font-size: 11px; color: #888;">Android</p>
-                        <p style="margin: 0; font-size: 18px; color: #333; font-weight: bold;">${androidDownloads.toLocaleString()}</p>
+                      <td width="40%" style="padding-right: 10px;">
+                        <p style="margin: 0 0 6px 0; font-size: 14px; color: #6a737d; font-weight: 700;">🤖 Android</p>
+                        <p style="margin: 0; font-size: 24px; color: #24292e; font-weight: 700;">${androidDownloads.toLocaleString()}</p>
                       </td>
-                      <td width="50%" style="padding-left: 5px;">
-                        <p style="margin: 0 0 3px 0; font-size: 11px; color: #888;">iOS</p>
-                        <p style="margin: 0; font-size: 18px; color: #333; font-weight: bold;">${iosDownloads.toLocaleString()}</p>
+                      <td width="10%" align="center"><div style="width: 2px; height: 40px; background-color: #d1d5da;"></div></td>
+                      <td width="50%" style="padding-left: 22px;">
+                        <p style="margin: 0 0 6px 0; font-size: 14px; color: #6a737d; font-weight: 700;">📱 iOS</p>
+                        <p style="margin: 0; font-size: 24px; color: #24292e; font-weight: 700;">${iosDownloads.toLocaleString()}</p>
                       </td>
                     </tr>
                   </table>
@@ -125,67 +126,22 @@ async function generateReport() {
               </tr>
             </table>
           </td>
-          <td width="50%" valign="top" style="padding: 10px;">
-            <table width="100%" border="0" cellpadding="15" cellspacing="0" style="background-color: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb;">
+          <td width="50%" valign="top" style="padding: 8px;">
+            <table width="100%" border="0" cellpadding="22" cellspacing="0" style="background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%); border: 1px solid #e8ecef; border-radius: 8px;">
               <tr>
                 <td>
-                  <p style="margin: 0 0 8px 0; font-size: 12px; color: #6b7280; font-weight: bold;">Episode Views</p>
-                  <p style="margin: 0 0 10px 0; font-size: 28px; color: #111; font-weight: bold;">${totalVideoViews.toLocaleString()}</p>
-                  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border-top: 1px solid #ddd; padding-top: 8px;">
+                  <p style="margin: 0 0 14px 0; font-size: 15px; color: #586069; font-weight: 600; letter-spacing: 0.3px;">📺 Episode Views</p>
+                  <p style="margin: 0 0 18px 0; font-size: 38px; color: #24292e; font-weight: 700; line-height: 1;">${totalVideoViews.toLocaleString()}</p>
+                  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border-top: 2px solid #d1d5da; padding-top: 14px;">
                     <tr>
-                      <td width="50%" style="padding-right: 5px; border-right: 1px solid #ddd;">
-                        <p style="margin: 0 0 3px 0; font-size: 11px; color: #888;">Android</p>
-                        <p style="margin: 0; font-size: 18px; color: #333; font-weight: bold;">${videoViewAndroid.toLocaleString()}</p>
+                      <td width="40%" style="padding-right: 10px;">
+                        <p style="margin: 0 0 6px 0; font-size: 14px; color: #6a737d; font-weight: 700;">🤖 Android</p>
+                        <p style="margin: 0; font-size: 24px; color: #24292e; font-weight: 700;">${videoViewAndroid.toLocaleString()}</p>
                       </td>
-                      <td width="50%" style="padding-left: 5px;">
-                        <p style="margin: 0 0 3px 0; font-size: 11px; color: #888;">iOS</p>
-                        <p style="margin: 0; font-size: 18px; color: #333; font-weight: bold;">${videoViewIOS.toLocaleString()}</p>
-                      </td>
-                    </tr>
-                  </table>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-        <tr>
-          <td width="50%" valign="top" style="padding: 10px;">
-            <table width="100%" border="0" cellpadding="15" cellspacing="0" style="background-color: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb;">
-              <tr>
-                <td>
-                  <p style="margin: 0 0 8px 0; font-size: 12px; color: #6b7280; font-weight: bold;">AdMob Impressions</p>
-                  <p style="margin: 0 0 10px 0; font-size: 28px; color: #111; font-weight: bold;">${admobImpressions.toLocaleString()}</p>
-                  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border-top: 1px solid #ddd; padding-top: 8px;">
-                    <tr>
-                      <td width="50%" style="padding-right: 5px; border-right: 1px solid #ddd;">
-                        <p style="margin: 0 0 3px 0; font-size: 11px; color: #888;">Android</p>
-                        <p style="margin: 0; font-size: 18px; color: #333; font-weight: bold;">${androidImpressions.toLocaleString()}</p>
-                      </td>
-                      <td width="50%" style="padding-left: 5px;">
-                        <p style="margin: 0 0 3px 0; font-size: 11px; color: #888;">iOS</p>
-                        <p style="margin: 0; font-size: 18px; color: #333; font-weight: bold;">${iosImpressions.toLocaleString()}</p>
-                      </td>
-                    </tr>
-                  </table>
-                </td>
-              </tr>
-            </table>
-          </td>
-          <td width="50%" valign="top" style="padding: 10px;">
-            <table width="100%" border="0" cellpadding="15" cellspacing="0" style="background-color: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb;">
-              <tr>
-                <td>
-                  <p style="margin: 0 0 8px 0; font-size: 12px; color: #6b7280; font-weight: bold;">AdMob Revenue</p>
-                  <p style="margin: 0 0 10px 0; font-size: 28px; color: #111; font-weight: bold;">₹${Math.round(admobRevenueINR).toLocaleString()}</p>
-                  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border-top: 1px solid #ddd; padding-top: 8px;">
-                    <tr>
-                      <td width="50%" style="padding-right: 5px; border-right: 1px solid #ddd;">
-                        <p style="margin: 0 0 3px 0; font-size: 11px; color: #888;">Android</p>
-                        <p style="margin: 0; font-size: 18px; color: #333; font-weight: bold;">₹${Math.round(androidAdRevenue * 83.5).toLocaleString()}</p>
-                      </td>
-                      <td width="50%" style="padding-left: 5px;">
-                        <p style="margin: 0 0 3px 0; font-size: 11px; color: #888;">iOS</p>
-                        <p style="margin: 0; font-size: 18px; color: #333; font-weight: bold;">₹${Math.round(iosAdRevenue * 83.5).toLocaleString()}</p>
+                      <td width="10%" align="center"><div style="width: 2px; height: 40px; background-color: #d1d5da;"></div></td>
+                      <td width="50%" style="padding-left: 22px;">
+                        <p style="margin: 0 0 6px 0; font-size: 14px; color: #6a737d; font-weight: 700;">📱 iOS</p>
+                        <p style="margin: 0; font-size: 24px; color: #24292e; font-weight: 700;">${videoViewIOS.toLocaleString()}</p>
                       </td>
                     </tr>
                   </table>
@@ -195,18 +151,65 @@ async function generateReport() {
           </td>
         </tr>
         <tr>
-          <td width="50%" valign="top" style="padding: 10px;">
-            <table width="100%" border="0" cellpadding="15" cellspacing="0" style="background-color: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb;">
+          <td width="50%" valign="top" style="padding: 8px;">
+            <table width="100%" border="0" cellpadding="22" cellspacing="0" style="background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%); border: 1px solid #e8ecef; border-radius: 8px;">
               <tr>
                 <td>
-                  <p style="margin: 0 0 8px 0; font-size: 12px; color: #6b7280; font-weight: bold;">Revenue (Razorpay)</p>
-                  <p style="margin: 0; font-size: 28px; color: #111; font-weight: bold;">₹${Math.round(subscriptionRevenue).toLocaleString()}</p>
+                  <p style="margin: 0 0 14px 0; font-size: 15px; color: #586069; font-weight: 600; letter-spacing: 0.3px;">👁️ AdMob Impressions</p>
+                  <p style="margin: 0 0 18px 0; font-size: 38px; color: #24292e; font-weight: 700; line-height: 1;">${admobImpressions.toLocaleString()}</p>
+                  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border-top: 2px solid #d1d5da; padding-top: 14px;">
+                    <tr>
+                      <td width="40%" style="padding-right: 10px;">
+                        <p style="margin: 0 0 6px 0; font-size: 14px; color: #6a737d; font-weight: 700;">🤖 Android</p>
+                        <p style="margin: 0; font-size: 24px; color: #24292e; font-weight: 700;">${androidImpressions.toLocaleString()}</p>
+                      </td>
+                      <td width="10%" align="center"><div style="width: 2px; height: 40px; background-color: #d1d5da;"></div></td>
+                      <td width="50%" style="padding-left: 22px;">
+                        <p style="margin: 0 0 6px 0; font-size: 14px; color: #6a737d; font-weight: 700;">📱 iOS</p>
+                        <p style="margin: 0; font-size: 24px; color: #24292e; font-weight: 700;">${iosImpressions.toLocaleString()}</p>
+                      </td>
+                    </tr>
+                  </table>
                 </td>
               </tr>
             </table>
           </td>
-          <td width="50%" valign="top" style="padding: 10px;">
+          <td width="50%" valign="top" style="padding: 8px;">
+            <table width="100%" border="0" cellpadding="22" cellspacing="0" style="background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%); border: 1px solid #e8ecef; border-radius: 8px;">
+              <tr>
+                <td>
+                  <p style="margin: 0 0 14px 0; font-size: 15px; color: #586069; font-weight: 600; letter-spacing: 0.3px;">💰 AdMob Revenue</p>
+                  <p style="margin: 0 0 18px 0; font-size: 38px; color: #24292e; font-weight: 700; line-height: 1;">₹${Math.round(admobRevenueINR).toLocaleString()}</p>
+                  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border-top: 2px solid #d1d5da; padding-top: 14px;">
+                    <tr>
+                      <td width="40%" style="padding-right: 10px;">
+                        <p style="margin: 0 0 6px 0; font-size: 14px; color: #6a737d; font-weight: 700;">🤖 Android</p>
+                        <p style="margin: 0; font-size: 24px; color: #24292e; font-weight: 700;">₹${Math.round(androidAdRevenue * 83.5).toLocaleString()}</p>
+                      </td>
+                      <td width="10%" align="center"><div style="width: 2px; height: 40px; background-color: #d1d5da;"></div></td>
+                      <td width="50%" style="padding-left: 22px;">
+                        <p style="margin: 0 0 6px 0; font-size: 14px; color: #6a737d; font-weight: 700;">📱 iOS</p>
+                        <p style="margin: 0; font-size: 24px; color: #24292e; font-weight: 700;">₹${Math.round(iosAdRevenue * 83.5).toLocaleString()}</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
           </td>
+        </tr>
+        <tr>
+          <td width="50%" valign="top" style="padding: 8px;">
+            <table width="100%" border="0" cellpadding="22" cellspacing="0" style="background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%); border: 1px solid #e8ecef; border-radius: 8px;">
+              <tr>
+                <td>
+                  <p style="margin: 0 0 14px 0; font-size: 15px; color: #586069; font-weight: 600; letter-spacing: 0.3px;">💳 Revenue (Razorpay)</p>
+                  <p style="margin: 0; font-size: 38px; color: #24292e; font-weight: 700; line-height: 1;">₹${Math.round(subscriptionRevenue).toLocaleString()}</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+          <td width="50%" valign="top" style="padding: 8px;"></td>
         </tr>
       </table>
 
