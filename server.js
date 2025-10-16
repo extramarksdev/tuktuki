@@ -690,7 +690,7 @@ app.get("/api/adjust/report", async (req, res) => {
     const appTokens = `${appTokenAndroid},${appTokenIOS}`;
     const eventTokens = [videoViewToken, firstInstallToken].filter(Boolean).join(',');
     
-    let url = `https://dash.adjust.com/control-center/reports-service/report?app_token__in=${appTokens}&date_period=${reportDate}:${reportDate}&dimensions=os_name&metrics=installs,sessions,daus,revenue`;
+    let url = `https://automate.adjust.com/reports-service/report?app_token__in=92t2wuqhyrcw&date_period=yesterday&dimensions=os_name,day&metrics=installs,video_view_events`;
     
     if (eventTokens) {
       url += `&event_token__in=${eventTokens}`;
@@ -731,7 +731,7 @@ app.get("/api/adjust/report", async (req, res) => {
         const eventsList = eventTokens.split(',');
         
         for (const eventToken of eventsList) {
-          const eventsUrl = `https://dash.adjust.com/control-center/reports-service/report?app_token__in=${appTokens}&date_period=${reportDate}:${reportDate}&dimensions=os_name&event_token__in=${eventToken}&metrics=events`;
+          const eventsUrl = `https://automate.adjust.com/reports-service/report?app_token__in=92t2wuqhyrcw&date_period=yesterday&dimensions=os_name,day&metrics=installs,video_view_events`;
           
           const eventsResponse = await fetch(eventsUrl, {
             method: "GET",
@@ -761,16 +761,18 @@ app.get("/api/adjust/report", async (req, res) => {
     return res.json({
       date: reportDate,
       android: {
-        installs: parseInt(androidRow?.installs || 0, 10),
+        installs: parseInt(data?.rows?.[0]?.installs || 0, 10),
         sessions: parseInt(androidRow?.sessions || 0, 10),
         daus: parseFloat(androidRow?.daus || 0),
         revenue: parseFloat(androidRow?.revenue || 0),
+        views: parseInt(data?.rows?.[0]?.video_view_events || 0, 10)
       },
       ios: {
-        installs: parseInt(iosRow?.installs || 0, 10),
+        installs: parseInt(data?.rows?.[1]?.installs || 0, 10),
         sessions: parseInt(iosRow?.sessions || 0, 10),
         daus: parseFloat(iosRow?.daus || 0),
         revenue: parseFloat(iosRow?.revenue || 0),
+        views: parseInt(data?.rows?.[1]?.video_view_events || 0, 10)
       },
       totals: data?.totals || {},
       events: eventsData,

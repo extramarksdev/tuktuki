@@ -28,67 +28,25 @@ async function fetchData(url) {
   }
 }
 
-async function fetchSheetData() {
-  const sheetId = "1iXvVAN5Zcr5yLjuU-KgI9CQZsXqLDqxSxfmdAlYGnsY";
-  const gid = "0";
-  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&gid=${gid}`;
-  try {
-    const res = await fetch(url);
-    const text = await res.text();
-    const json = JSON.parse(text.substring(47).slice(0, -2));
-    const row = json.table.rows[0].c.map((cell) => cell?.v || 0);
-    return {
-      iosinstall: Number(row[0] || 0),
-      androidinstall: Number(row[1] || 0),
-      iosview: Number(row[2] || 0),
-      androidview: Number(row[3] || 0),
-    };
-  } catch (err) {
-    console.error("❌ Failed to fetch spreadsheet data:", err.message);
-    return { iosinstall: 0, androidinstall: 0, iosview: 0, androidview: 0 };
-  }
-}
-
 async function generateReport() {
   const reportDay = new Date();
   reportDay.setDate(reportDay.getDate() - 1);
   const reportDate = reportDay.toISOString().split("T")[0];
 
-  const [adjustData, admobData, razorpayPayments, sheetData] =
+  const [adjustData, admobData, razorpayPayments] =
     await Promise.all([
       fetchData(`${API_BASE}/adjust/report?date=${reportDate}`),
       fetchData(`${API_BASE}/admob/report`),
       fetchData(`${API_BASE}/razorpay/payments`),
-      fetchSheetData(),
     ]);
 
-  const iosDownloads =
-    sheetData.iosinstall !== 0
-      ? sheetData.iosinstall
-      : adjustData?.ios?.installs || 0;
-  const androidDownloads =
-    sheetData.androidinstall !== 0
-      ? sheetData.androidinstall
-      : adjustData?.android?.installs || 0;
+  const iosDownloads = adjustData?.ios?.installs || 0;
+  const androidDownloads = adjustData?.android?.installs || 0;
   const totalDownloads = iosDownloads + androidDownloads;
 
-  const videoViewAndroid =
-    sheetData.androidview !== 0
-      ? sheetData.androidview
-      : parseInt(
-          adjustData?.events?.["9v5ed0"]?.rows?.find(
-            (r) => r.os_name === "android"
-          )?.events || 0,
-          10
-        );
-  const videoViewIOS =
-    sheetData.iosview !== 0
-      ? sheetData.iosview
-      : parseInt(
-          adjustData?.events?.["9v5ed0"]?.rows?.find((r) => r.os_name === "ios")
-            ?.events || 0,
-          10
-        );
+  const videoViewAndroid = adjustData?.android?.views;
+  const videoViewIOS = adjustData?.ios?.views;
+
   const totalVideoViews = videoViewAndroid + videoViewIOS;
 
   const dailyAdmob = admobData?.dailyData || [];
