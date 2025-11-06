@@ -680,7 +680,7 @@ app.get("/api/playstore/downloads", async (req, res) => {
       userMessage =
         "Permission denied. Service account needs 'Storage Object Viewer' role";
     }
-
+    
     res.status(500).json({
       error: true,
       message: userMessage,
