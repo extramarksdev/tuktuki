@@ -721,7 +721,8 @@ app.get("/api/adjust/report", async (req, res) => {
     const appTokens = `${appTokenAndroid},${appTokenIOS}`;
     const eventTokens = [videoViewToken, firstInstallToken].filter(Boolean).join(',');
     
-    let url = `https://automate.adjust.com/reports-service/report?app_token__in=92t2wuqhyrcw&date_period=yesterday&dimensions=os_name,day&metrics=installs,video_view_events`;
+    // Use the requested single day (absolute range) per Adjust docs
+    let url = `https://automate.adjust.com/reports-service/report?app_token__in=${encodeURIComponent(appTokens)}&date_period=${reportDate}:${reportDate}&dimensions=os_name,day&metrics=installs,video_view_events`;
     
     if (eventTokens) {
       url += `&event_token__in=${eventTokens}`;
@@ -762,7 +763,7 @@ app.get("/api/adjust/report", async (req, res) => {
         const eventsList = eventTokens.split(',');
         
         for (const eventToken of eventsList) {
-          const eventsUrl = `https://automate.adjust.com/reports-service/report?app_token__in=92t2wuqhyrcw&date_period=yesterday&dimensions=os_name,day&metrics=installs,video_view_events`;
+          const eventsUrl = `https://automate.adjust.com/reports-service/report?app_token__in=${encodeURIComponent(appTokens)}&date_period=${reportDate}:${reportDate}&dimensions=os_name,day&metrics=installs,video_view_events`;
           
           const eventsResponse = await fetch(eventsUrl, {
             method: "GET",
@@ -792,18 +793,18 @@ app.get("/api/adjust/report", async (req, res) => {
     return res.json({
       date: reportDate,
       android: {
-        installs: parseInt(data?.rows?.[0]?.installs || 0, 10),
+        installs: parseInt(androidRow?.installs || 0, 10),
         sessions: parseInt(androidRow?.sessions || 0, 10),
         daus: parseFloat(androidRow?.daus || 0),
         revenue: parseFloat(androidRow?.revenue || 0),
-        views: parseInt(data?.rows?.[0]?.video_view_events || 0, 10)
+        views: parseInt(androidRow?.video_view_events || 0, 10)
       },
       ios: {
-        installs: parseInt(data?.rows?.[1]?.installs || 0, 10),
+        installs: parseInt(iosRow?.installs || 0, 10),
         sessions: parseInt(iosRow?.sessions || 0, 10),
         daus: parseFloat(iosRow?.daus || 0),
         revenue: parseFloat(iosRow?.revenue || 0),
-        views: parseInt(data?.rows?.[1]?.video_view_events || 0, 10)
+        views: parseInt(iosRow?.video_view_events || 0, 10)
       },
       totals: data?.totals || {},
       events: eventsData,

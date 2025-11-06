@@ -9,12 +9,16 @@
     "server": "node server.js",
     "build": "vite build",
     "preview": "vite preview",
-    "generate-report": "node email-reports/generate-report.js"
+    "generate-report": "node email-reports/generate-report.js",
+    "generate-long-report": "node email-reports/generate-long-report.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
+    "exceljs": "^4.4.0",
     "express": "^5.1.0",
+    "googleapis": "^164.1.0",
+    "jsonwebtoken": "^9.0.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
