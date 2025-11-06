@@ -404,12 +404,23 @@ app.get("/api/admob/report", async (req, res) => {
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
     const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
 
-    console.log("📊 AdMob API Request Started");
-    console.log("   Publisher ID:", publisherId || "❌ MISSING");
-    console.log("   Client ID:", clientId ? "✅ SET" : "❌ MISSING");
-    console.log("   Client Secret:", clientSecret ? "✅ SET" : "❌ MISSING");
-    console.log("   Refresh Token:", refreshToken || "❌ MISSING");
-    console.log("   ttttttttt Full Refresh Token:", refreshToken);
+    // Get report date from query params (default to yesterday in IST)
+    let reportDate = req.query.date;
+    if (!reportDate) {
+      const nowInIndia = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+      const reportDay = new Date(nowInIndia);
+      reportDay.setDate(reportDay.getDate() - 1);
+      reportDate = `${reportDay.getFullYear()}-${String(reportDay.getMonth() + 1).padStart(2, '0')}-${String(reportDay.getDate()).padStart(2, '0')}`;
+    }
+
+    console.log("\n" + "=".repeat(60));
+    console.log("📊 ADMOB API REQUEST");
+    console.log("=".repeat(60));
+    console.log("📅 Report Date:", reportDate);
+    console.log("📍 Publisher ID:", publisherId || "❌ MISSING");
+    console.log("🔑 Client ID:", clientId ? "✅ SET" : "❌ MISSING");
+    console.log("🔑 Client Secret:", clientSecret ? "✅ SET" : "❌ MISSING");
+    console.log("🔑 Refresh Token:", refreshToken ? "✅ SET" : "❌ MISSING");
 
     if (!publisherId || !clientId || !clientSecret || !refreshToken) {
       return res.status(400).json({
@@ -419,29 +430,29 @@ app.get("/api/admob/report", async (req, res) => {
       });
     }
 
-    console.log("🔐 Creating OAuth2 client...");
+    console.log("\n🔐 Creating OAuth2 client...");
     const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
     oauth2Client.setCredentials({ refresh_token: refreshToken });
 
     oauth2Client.on('tokens', (tokens) => {
-      console.log("🔄 ttttttttt New access token obtained from refresh token!");
-      console.log("   Access Token:", tokens.access_token ? `✅ ${tokens.access_token.substring(0, 30)}...` : "❌");
-      console.log("   Expires in:", tokens.expiry_date ? new Date(tokens.expiry_date).toISOString() : "unknown");
-      if (tokens.refresh_token) {
-        console.log("   New Refresh Token received:", tokens.refresh_token.substring(0, 30) + "...");
-      }
+      console.log("🔄 New access token obtained from refresh token");
+      console.log("   Expires:", tokens.expiry_date ? new Date(tokens.expiry_date).toISOString() : "unknown");
     });
 
-    console.log("✅ OAuth2 client configured with refresh token");
+    console.log("✅ OAuth2 client configured");
     console.log("📡 Initializing AdMob API client...");
     const admob = google.admob({ version: "v1", auth: oauth2Client });
 
-    const today = new Date();
-    const thirtyDaysAgo = new Date(today);
-    thirtyDaysAgo.setDate(today.getDate() - 30);
+    // Parse the report date (YYYY-MM-DD)
+    const [year, month, day] = reportDate.split('-').map(Number);
 
-    console.log(`📅 Fetching AdMob data from ${thirtyDaysAgo.toISOString().split('T')[0]} to ${today.toISOString().split('T')[0]}`);
-    console.log(`🎯 Target account: accounts/${publisherId}`);
+    console.log("\n📊 AdMob API Call Details:");
+    console.log("   Account: accounts/" + publisherId);
+    console.log("   Date Range: " + reportDate + " (single day only)");
+    console.log("   Start Date: Year=" + year + ", Month=" + month + ", Day=" + day);
+    console.log("   End Date: Year=" + year + ", Month=" + month + ", Day=" + day);
+    console.log("   Metrics: IMPRESSIONS, CLICKS, ESTIMATED_EARNINGS");
+    console.log("   Dimensions: DATE, PLATFORM");
 
     const response = await admob.accounts.networkReport.generate({
       parent: `accounts/${publisherId}`,
@@ -449,14 +460,14 @@ app.get("/api/admob/report", async (req, res) => {
         reportSpec: {
           dateRange: {
             startDate: {
-              year: thirtyDaysAgo.getFullYear(),
-              month: thirtyDaysAgo.getMonth() + 1,
-              day: thirtyDaysAgo.getDate(),
+              year: year,
+              month: month,
+              day: day,
             },
             endDate: {
-              year: today.getFullYear(),
-              month: today.getMonth() + 1,
-              day: today.getDate(),
+              year: year,
+              month: month,
+              day: day,
             },
           },
           metrics: ["IMPRESSIONS", "CLICKS", "ESTIMATED_EARNINGS"],
@@ -465,18 +476,32 @@ app.get("/api/admob/report", async (req, res) => {
       },
     });
 
-    console.log("✅ AdMob API call successful!");
-    console.log("📦 AdMob Raw Response (sample):", JSON.stringify(response.data.slice(0, 5), null, 2));
+    console.log("\n✅ AdMob API call successful!");
+    console.log("📦 Response Structure:");
+    console.log("   Total items:", response.data?.length || 0);
+    
+    if (response.data && response.data.length > 0) {
+      console.log("\n📋 ALL Response Items:");
+      response.data.forEach((item, idx) => {
+        console.log(`   Item ${idx + 1}:`, JSON.stringify(item, null, 2));
+      });
+    } else {
+      console.log("   ⚠️  No data returned from AdMob API");
+    }
 
     const responseArray = response.data || [];
     const dataRows = responseArray.filter(item => item.row).map(item => item.row);
+    
+    console.log("\n📊 Processing AdMob Response:");
+    console.log("   Total response items:", responseArray.length);
+    console.log("   Rows with data:", dataRows.length);
     
     let totalImpressions = 0;
     let totalClicks = 0;
     let totalEarnings = 0;
     const dailyData = [];
 
-    dataRows.forEach((row) => {
+    dataRows.forEach((row, idx) => {
       const date = row.dimensionValues?.DATE?.value || "";
       const platform = row.dimensionValues?.PLATFORM?.value || "Unknown";
       const metrics = row.metricValues || {};
@@ -489,12 +514,16 @@ app.get("/api/admob/report", async (req, res) => {
           : 0
       );
 
+      const formattedDate = date.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3");
+
+      console.log(`   Row ${idx + 1}: Date=${formattedDate}, Platform=${platform}, Impressions=${impressions}, Revenue=$${earnings.toFixed(4)}`);
+
       totalImpressions += impressions;
       totalClicks += clicks;
       totalEarnings += earnings;
 
       dailyData.push({
-        date: date.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3"),
+        date: formattedDate,
         platform,
         impressions,
         clicks,
@@ -502,18 +531,20 @@ app.get("/api/admob/report", async (req, res) => {
       });
     });
 
-    console.log("📊 Parsed totals:");
-    console.log("   Impressions:", totalImpressions);
-    console.log("   Clicks:", totalClicks);
-    console.log("   Revenue:", totalEarnings);
-    console.log("   Total daily rows:", dailyData.length);
+    console.log("\n📊 Final Totals for " + reportDate + ":");
+    console.log("   Total Impressions:", totalImpressions);
+    console.log("   Total Clicks:", totalClicks);
+    console.log("   Total Revenue: $" + totalEarnings.toFixed(4));
+    console.log("   Daily Data Rows:", dailyData.length);
+    console.log("=".repeat(60) + "\n");
 
     return res.json({
       publisherId,
       impressions: totalImpressions,
       clicks: totalClicks,
       revenue: totalEarnings,
-      period: "last 30 days",
+      reportDate: reportDate,
+      period: reportDate,
       dailyData,
       rawResponse: response.data,
     });

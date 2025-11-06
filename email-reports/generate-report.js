@@ -28,16 +28,100 @@ async function fetchData(url) {
   }
 }
 
+/**
+ * Get report date (always yesterday in IST) - BULLETPROOF
+ * @returns {string} Report date in YYYY-MM-DD format
+ */
+async function getReportDate() {
+  console.log("\n" + "=".repeat(60));
+  console.log("🕐 GETTING IST DATE");
+  console.log("=".repeat(60));
+  
+  try {
+    // Try WorldTimeAPI first (free, no auth, reliable)
+    console.log("📡 Trying WorldTimeAPI (timeout: 10 seconds)...");
+    
+    // Create timeout promise
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Request timeout after 10 seconds')), 10000);
+    });
+    
+    // Race between fetch and timeout
+    const response = await Promise.race([
+      fetch("http://worldtimeapi.org/api/timezone/Asia/Kolkata"),
+      timeoutPromise
+    ]);
+    
+    if (!response.ok) {
+      throw new Error(`WorldTimeAPI returned status ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    console.log("✅ WorldTimeAPI Response:");
+    console.log(`   DateTime: ${data.datetime}`);
+    console.log(`   TimeZone: ${data.timezone}`);
+    console.log(`   UTC Offset: ${data.utc_offset}`);
+    
+    // Parse the datetime field (format: "2025-11-05T09:56:23.123456+05:30")
+    const currentIST = new Date(data.datetime);
+    
+    console.log(`   Current IST Date: ${currentIST.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}`);
+    console.log(`   Current IST Time: ${currentIST.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' })}`);
+    
+    // Subtract 1 day to get yesterday
+    const yesterday = new Date(currentIST);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    // Format as YYYY-MM-DD
+    const reportDate = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+    
+    console.log(`   Yesterday IST Date: ${yesterday.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}`);
+    console.log("\n🎯 FINAL REPORT DATE: " + reportDate);
+    console.log("=".repeat(60) + "\n");
+    
+    return reportDate;
+    
+  } catch (error) {
+    console.warn("⚠️  WorldTimeAPI failed:", error.message);
+    console.log("↩️  Falling back to Node.js IST calculation...");
+    
+    // Fallback: Use Node.js with IST timezone conversion
+    const nowInIndia = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+    const currentIST = new Date(nowInIndia);
+    
+    console.log("✅ Node.js IST Calculation:");
+    console.log(`   Current IST Date/Time: ${currentIST.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`);
+    
+    // Subtract 1 day to get yesterday
+    const yesterday = new Date(currentIST);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    // Format as YYYY-MM-DD
+    const reportDate = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+    
+    console.log(`   Yesterday IST Date: ${yesterday.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}`);
+    console.log("\n🎯 FINAL REPORT DATE (Fallback): " + reportDate);
+    console.log("=".repeat(60) + "\n");
+    
+    return reportDate;
+  }
+}
+
 async function generateReport() {
-  const reportDay = new Date();
-  reportDay.setDate(reportDay.getDate() - 1);
-  const reportDate = reportDay.toISOString().split("T")[0];
+  // Get report date (always yesterday in IST) using robust calculation
+  const reportDate = await getReportDate();
+
+  console.log("\n" + "=".repeat(60));
+  console.log("📡 FETCHING DATA FROM APIs");
+  console.log("=".repeat(60));
+  console.log(`Using Report Date: ${reportDate} for all API calls\n`);
 
   const [adjustData, admobData, razorpayPayments] =
     await Promise.all([
       fetchData(`${API_BASE}/adjust/report?date=${reportDate}`),
-      fetchData(`${API_BASE}/admob/report`),
-      fetchData(`${API_BASE}/razorpay/payments`),
+      fetchData(`${API_BASE}/admob/report?date=${reportDate}`),
+      fetchData(`${API_BASE}/razorpay/payments?date=${reportDate}`),   
     ]);
 
   const iosDownloads = adjustData?.ios?.installs || 0;
