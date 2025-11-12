@@ -143,7 +143,7 @@ async function fetchForDate(date) {
 
 async function generateExcel(rows) {
     const wb = new ExcelJS.Workbook();
-    const ws = wb.addWorksheet("Last 60 Days");
+    const ws = wb.addWorksheet(`Last ${process.env.EXCEL_REPORT_DAYS_COUNT} days`);
   
     // Adjust column widths: increase razorpay to 22, others slightly reduced
     ws.columns = [
@@ -280,7 +280,7 @@ async function generateExcel(rows) {
       cell.alignment = { horizontal: "center", vertical: "middle" };
     });
   
-    const out = path.join(__dirname, "60-days-report.xlsx");
+    const out = path.join(__dirname, `${process.env.EXCEL_REPORT_DAYS_COUNT}-days-report.xlsx`);
     await wb.xlsx.writeFile(out);
     console.log(`✅ Excel written: ${out}`);
   }
