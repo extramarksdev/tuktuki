@@ -10,7 +10,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "generate-report": "node email-reports/generate-report.js",
-    "generate-long-report": "node email-reports/generate-long-report.js"
+    "generate-long-report": "node email-reports/generate-long-report.js",
+    "save-report-to-db": "node email-reports/save-report-to-db.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

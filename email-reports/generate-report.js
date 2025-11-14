@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { getUsdToInrRate } from "./utils/currency.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -36,80 +37,101 @@ async function getReportDate() {
   console.log("\n" + "=".repeat(60));
   console.log("🕐 GETTING IST DATE");
   console.log("=".repeat(60));
-  
+
   try {
-    // Try WorldTimeAPI first (free, no auth, reliable)
-    console.log("📡 Trying WorldTimeAPI (timeout: 10 seconds)...");
-    
-    // Create timeout promise
+    console.log("📡 Trying timeapi.io/api (timeout: 5 seconds)...");
+
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Request timeout after 10 seconds')), 10000);
+      setTimeout(
+        () => reject(new Error("Request timeout after 5 seconds")),
+        5000
+      );
     });
-    
-    // Race between fetch and timeout
+
     const response = await Promise.race([
-      fetch("http://worldtimeapi.org/api/timezone/Asia/Kolkata"),
-      timeoutPromise
+      fetch("https://timeapi.io/api/TimeZone/zone?timeZone=Asia/Kolkata"),
+      timeoutPromise,
     ]);
-    
+
     if (!response.ok) {
-      throw new Error(`WorldTimeAPI returned status ${response.status}`);
+      throw new Error(`timeapi.io returned status ${response.status}`);
     }
-    
+
     const data = await response.json();
-    
-    console.log("✅ WorldTimeAPI Response:");
-    console.log(`   DateTime: ${data.datetime}`);
-    console.log(`   TimeZone: ${data.timezone}`);
-    console.log(`   UTC Offset: ${data.utc_offset}`);
-    
-    // Parse the datetime field (format: "2025-11-05T09:56:23.123456+05:30")
-    const currentIST = new Date(data.datetime);
-    
-    console.log(`   Current IST Date: ${currentIST.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}`);
-    console.log(`   Current IST Time: ${currentIST.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' })}`);
-    
-    // Subtract 1 day to get yesterday
+
+    console.log("✅ timeapi.io Response:");
+    console.log(`   Current Time: ${data.currentLocalTime}`);
+    console.log(`   TimeZone: ${data.timeZone}`);
+
+    const currentIST = new Date(data.currentLocalTime);
+
+    console.log(
+      `   Current IST Date: ${currentIST.toLocaleDateString("en-IN", {
+        timeZone: "Asia/Kolkata",
+      })}`
+    );
+    console.log(
+      `   Current IST Time: ${currentIST.toLocaleTimeString("en-IN", {
+        timeZone: "Asia/Kolkata",
+      })}`
+    );
+
     const yesterday = new Date(currentIST);
     yesterday.setDate(yesterday.getDate() - 1);
-    
-    // Format as YYYY-MM-DD
-    const reportDate = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
-    
-    console.log(`   Yesterday IST Date: ${yesterday.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}`);
+
+    const reportDate = `${yesterday.getFullYear()}-${String(
+      yesterday.getMonth() + 1
+    ).padStart(2, "0")}-${String(yesterday.getDate()).padStart(2, "0")}`;
+
+    console.log(
+      `   Yesterday IST Date: ${yesterday.toLocaleDateString("en-IN", {
+        timeZone: "Asia/Kolkata",
+      })}`
+    );
     console.log("\n🎯 FINAL REPORT DATE: " + reportDate);
     console.log("=".repeat(60) + "\n");
-    
+
     return reportDate;
-    
   } catch (error) {
-    console.warn("⚠️  WorldTimeAPI failed:", error.message);
+    console.warn("⚠️  timeapi.io failed:", error.message);
     console.log("↩️  Falling back to Node.js IST calculation...");
-    
-    // Fallback: Use Node.js with IST timezone conversion
-    const nowInIndia = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+
+    const nowInIndia = new Date().toLocaleString("en-US", {
+      timeZone: "Asia/Kolkata",
+    });
     const currentIST = new Date(nowInIndia);
-    
+
     console.log("✅ Node.js IST Calculation:");
-    console.log(`   Current IST Date/Time: ${currentIST.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`);
-    
-    // Subtract 1 day to get yesterday
+    console.log(
+      `   Current IST Date/Time: ${currentIST.toLocaleString("en-IN", {
+        timeZone: "Asia/Kolkata",
+      })}`
+    );
+
     const yesterday = new Date(currentIST);
     yesterday.setDate(yesterday.getDate() - 1);
-    
-    // Format as YYYY-MM-DD
-    const reportDate = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
-    
-    console.log(`   Yesterday IST Date: ${yesterday.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}`);
+
+    const reportDate = `${yesterday.getFullYear()}-${String(
+      yesterday.getMonth() + 1
+    ).padStart(2, "0")}-${String(yesterday.getDate()).padStart(2, "0")}`;
+
+    console.log(
+      `   Yesterday IST Date: ${yesterday.toLocaleDateString("en-IN", {
+        timeZone: "Asia/Kolkata",
+      })}`
+    );
     console.log("\n🎯 FINAL REPORT DATE (Fallback): " + reportDate);
     console.log("=".repeat(60) + "\n");
-    
+
     return reportDate;
   }
 }
 
 async function generateReport() {
-  // Get report date (always yesterday in IST) using robust calculation
+  console.log(`\n${"=".repeat(60)}`);
+  console.log(`🚀 Starting HTML Report Generation`);
+  console.log(`${"=".repeat(60)}\n`);
+
   const reportDate = await getReportDate();
 
   console.log("\n" + "=".repeat(60));
@@ -117,21 +139,34 @@ async function generateReport() {
   console.log("=".repeat(60));
   console.log(`Using Report Date: ${reportDate} for all API calls\n`);
 
-  const [adjustData, admobData, razorpayPayments] =
-    await Promise.all([
-      fetchData(`${API_BASE}/adjust/report?date=${reportDate}`),
-      fetchData(`${API_BASE}/admob/report?date=${reportDate}`),
-      fetchData(`${API_BASE}/razorpay/payments?date=${reportDate}`),   
-    ]);
+  const [adjustData, admobData, razorpayPayments] = await Promise.all([
+    fetchData(`${API_BASE}/adjust/report?date=${reportDate}`),
+    fetchData(`${API_BASE}/admob/report?date=${reportDate}`),
+    fetchData(`${API_BASE}/razorpay/payments?date=${reportDate}`),
+  ]);
+
+  console.log("\n" + "=".repeat(60));
+  console.log("📊 PROCESSING DATA");
+  console.log("=".repeat(60));
 
   const iosDownloads = adjustData?.ios?.installs || 0;
   const androidDownloads = adjustData?.android?.installs || 0;
   const totalDownloads = iosDownloads + androidDownloads;
 
-  const videoViewAndroid = adjustData?.android?.views;
-  const videoViewIOS = adjustData?.ios?.views;
+  console.log(`\n📥 Downloads:`);
+  console.log(`   Android: ${androidDownloads.toLocaleString()}`);
+  console.log(`   iOS: ${iosDownloads.toLocaleString()}`);
+  console.log(`   Total: ${totalDownloads.toLocaleString()}`);
+
+  const videoViewAndroid = adjustData?.android?.views || 0;
+  const videoViewIOS = adjustData?.ios?.views || 0;
 
   const totalVideoViews = videoViewAndroid + videoViewIOS;
+
+  console.log(`\n📺 Episode Views:`);
+  console.log(`   Android: ${videoViewAndroid.toLocaleString()}`);
+  console.log(`   iOS: ${videoViewIOS.toLocaleString()}`);
+  console.log(`   Total: ${totalVideoViews.toLocaleString()}`);
 
   const dailyAdmob = admobData?.dailyData || [];
   const yesterdayAdmob = dailyAdmob.filter((d) => d.date === reportDate);
@@ -147,7 +182,31 @@ async function generateReport() {
   const iosAdRevenue = iosYesterday?.revenue || 0;
   const androidAdRevenue = androidYesterday?.revenue || 0;
   const admobRevenue = iosAdRevenue + androidAdRevenue;
-  const admobRevenueINR = admobRevenue * 83.5;
+
+  const usdToInr = await getUsdToInrRate();
+  const admobRevenueINR = admobRevenue * usdToInr;
+
+  console.log(`\n👁️ AdMob Impressions:`);
+  console.log(`   Android: ${androidImpressions.toLocaleString()}`);
+  console.log(`   iOS: ${iosImpressions.toLocaleString()}`);
+  console.log(`   Total: ${admobImpressions.toLocaleString()}`);
+
+  console.log(`\n💰 AdMob Revenue:`);
+  console.log(
+    `   Android: $${androidAdRevenue.toFixed(2)} → ₹${Math.round(
+      androidAdRevenue * usdToInr
+    )} (rate: ${usdToInr})`
+  );
+  console.log(
+    `   iOS: $${iosAdRevenue.toFixed(2)} → ₹${Math.round(
+      iosAdRevenue * usdToInr
+    )} (rate: ${usdToInr})`
+  );
+  console.log(
+    `   Total: $${admobRevenue.toFixed(2)} → ₹${Math.round(
+      admobRevenueINR
+    )} (rate: ${usdToInr})`
+  );
 
   const reportLocalDate = new Date(reportDate + "T00:00:00").toLocaleDateString(
     "en-IN"
@@ -164,6 +223,14 @@ async function generateReport() {
     }) || [];
   const subscriptionRevenue =
     yesterdayPayments.reduce((sum, p) => sum + (p.amount || 0), 0) / 100;
+
+  console.log(`\n💳 Razorpay Revenue:`);
+  console.log(`   Captured Payments: ${yesterdayPayments.length}`);
+  console.log(`   Total Revenue: ₹${Math.round(subscriptionRevenue)}`);
+
+  console.log("\n" + "=".repeat(60));
+  console.log("📝 GENERATING HTML REPORT");
+  console.log("=".repeat(60));
 
   const dateStr = new Date(reportDate).toLocaleDateString("en-US", {
     day: "numeric",
@@ -274,14 +341,14 @@ async function generateReport() {
                       <td width="40%" style="padding-right: 10px;">
                         <p style="margin: 0 0 6px 0; font-size: 14px; color: #1a1a1a; font-weight: 700;">🤖 Android</p>
                         <p style="margin: 0; font-size: 24px; color: #24292e; font-weight: 700;">₹${Math.round(
-                          androidAdRevenue * 83.5
+                          androidAdRevenue * usdToInr
                         ).toLocaleString()}</p>
                       </td>
                       <td width="10%" align="center"><div style="width: 2px; height: 40px; background-color: #d1d5da;"></div></td>
                       <td width="50%" style="padding-left: 22px;">
                         <p style="margin: 0 0 6px 0; font-size: 14px; color: #1a1a1a; font-weight: 700;">📱 iOS</p>
                         <p style="margin: 0; font-size: 24px; color: #24292e; font-weight: 700;">₹${Math.round(
-                          iosAdRevenue * 83.5
+                          iosAdRevenue * usdToInr
                         ).toLocaleString()}</p>
                       </td>
                     </tr>
@@ -317,6 +384,35 @@ async function generateReport() {
 
   const outputPath = path.join(__dirname, "index.html");
   fs.writeFileSync(outputPath, html, "utf8");
+
+  console.log(`\n✅ HTML file written: ${outputPath}`);
+
+  console.log(`\n${"=".repeat(60)}`);
+  console.log(`✅ REPORT GENERATED SUCCESSFULLY`);
+  console.log(`${"=".repeat(60)}`);
+  console.log(`\n📊 Final Report Summary:`);
+  console.log(`   Report Date: ${dateStr}`);
+  console.log(`   Total Downloads: ${totalDownloads.toLocaleString()}`);
+  console.log(`   Total Episode Views: ${totalVideoViews.toLocaleString()}`);
+  console.log(
+    `   Total AdMob Impressions: ${admobImpressions.toLocaleString()}`
+  );
+  console.log(
+    `   Total AdMob Revenue: ₹${Math.round(admobRevenueINR).toLocaleString()}`
+  );
+  console.log(
+    `   Total Razorpay Revenue: ₹${Math.round(
+      subscriptionRevenue
+    ).toLocaleString()}`
+  );
+  console.log(`   Output File: ${outputPath}`);
+  console.log(`\n${"=".repeat(60)}\n`);
 }
 
-generateReport().catch(console.error);
+generateReport().catch((error) => {
+  console.error(`\n${"=".repeat(60)}`);
+  console.error(`❌ REPORT GENERATION FAILED`);
+  console.error(`❌ Reason: ${error.message}`);
+  console.error(`${"=".repeat(60)}\n`);
+  process.exit(1);
+});
