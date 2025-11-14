@@ -57,7 +57,7 @@ const getReportDate = async () => {
   console.log("🕐 GETTING IST DATE");
   console.log("=".repeat(60));
 
-  const offset = parseInt(process.env.REPORT_DATE_OFFSET || "1", 10);
+  const offset = parseInt(process.env.DB_REPORT_DATE_OFFSET || "1", 10);
 
   try {
     console.log("📡 Trying timeapi.io/api (timeout: 5 seconds)...");

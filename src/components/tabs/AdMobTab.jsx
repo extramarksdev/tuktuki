@@ -32,7 +32,7 @@ export const AdMobTab = ({ stats, error, message }) => {
   console.log("📊 AdMob Stats received:", stats);
 
   const dailyData = stats?.dailyData || [];
-  const USD_TO_INR = 83.5;
+  const USD_TO_INR = 88.5;
   const totalRevenueINR = (stats?.revenue || 0) * USD_TO_INR;
 
   return (

@@ -1,4 +1,4 @@
-const FALLBACK_USD_TO_INR = 83.5;
+const FALLBACK_USD_TO_INR = 88.5;
 const CACHE_DURATION = 3600000;
 
 let cachedRate = null;
